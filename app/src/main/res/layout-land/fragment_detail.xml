@@ -9,12 +9,12 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:adjustViewBounds="true"
-        android:layout_marginLeft="-20dp"
-        android:layout_marginRight="-20dp"
-        android:layout_marginTop="-40dp"
-        android:layout_marginBottom="-40dp"
-        android:layout_alignParentEnd="false"
-        android:layout_margin="-40dp" />
+        android:layout_marginLeft="-100dp"
+        android:layout_marginRight="-100dp"
+        android:layout_marginTop="-500dp"
+        android:layout_marginBottom="-500dp"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentStart="true" />
 
     <ImageView
         android:layout_width="match_parent"
@@ -23,11 +23,8 @@
         android:layout_centerHorizontal="true"
         android:background="#76000000"
         android:adjustViewBounds="true"
-        android:layout_margin="-40dp"
-        android:layout_marginLeft="-40dp"
-        android:layout_marginTop="-40dp"
-        android:layout_marginRight="-40dp"
-        android:layout_marginBottom="-40dp" />
+        android:layout_alignParentEnd="false"
+        android:layout_alignParentStart="false" />
 
     <ScrollView
         android:layout_height="wrap_content"

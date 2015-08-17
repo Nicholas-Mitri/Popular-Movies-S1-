@@ -8,28 +8,23 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
-
 import com.squareup.picasso.Picasso;
+import java.util.ArrayList;
 
-import java.util.List;
-
-/**
- * Created by Nicholas on 8/8/2015.
- */
 public class MyAdapter extends BaseAdapter {
 
     private Context mContext = null;
     private int mTextViewResourceID;
     private int mImageViewResourceID;
     private int mResource;
-    List<String[]> mObjects = null;
+    ArrayList<Movie> mObjects = null;
     private LayoutInflater mInflater;
     private int testImageDrawable = R.drawable.sample;
     private static final String BASE_IMG_URL = "http://image.tmdb.org/t/p/";
     private static final String IMG_SIZE = "w342";
 
     public MyAdapter(Context c, int resource, int textViewResourceID, int imageViewResourceID,
-                     List<String[]> objects) {
+                     ArrayList<Movie> objects) {
         mContext = c;
         mTextViewResourceID = textViewResourceID;
         mImageViewResourceID = imageViewResourceID;
@@ -48,7 +43,7 @@ public class MyAdapter extends BaseAdapter {
         mObjects.clear();
     }
 
-    public void add(String[] item) {
+    public void add(Movie item) {
         mObjects.add(item);
 
         notifyDataSetChanged();
@@ -79,7 +74,7 @@ public class MyAdapter extends BaseAdapter {
             } else {
                 mView = convertView;
             }
-            String poster_path = BASE_IMG_URL + IMG_SIZE + mObjects.get(position)[4];
+            String poster_path = BASE_IMG_URL + IMG_SIZE + mObjects.get(position).getPosterURL();
             ImageView imageView = (ImageView) mView.findViewById(mImageViewResourceID);
             try {
                 Picasso.with(mContext).load(poster_path).placeholder(R.drawable.sample)
@@ -89,7 +84,7 @@ public class MyAdapter extends BaseAdapter {
                 Log.d("PopMovies", "PICASSO FAILING");
             }
                     TextView textview = (TextView) mView.findViewById(mTextViewResourceID);
-                    textview.setText(mObjects.get(position)[0]);
+                    textview.setText(mObjects.get(position).getTitle());
             return mView;
         }
         return null;

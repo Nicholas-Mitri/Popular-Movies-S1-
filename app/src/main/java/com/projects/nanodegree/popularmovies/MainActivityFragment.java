@@ -17,6 +17,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.GridView;
+import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -29,8 +30,6 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 
 /**
@@ -38,13 +37,14 @@ import java.util.List;
  */
 public class MainActivityFragment extends Fragment {
 
-    private static final String API_KEY = "";
+    private static final String API_KEY = "de202981a99b1c7b9105af167a0f76ee";
     private static final String BASE_IMG_URL = "http://image.tmdb.org/t/p/";
+    private static final String STATE_MOVIES = "state_movies";
     private String BASE_MOV_URL = "http://api.themoviedb.org/3/discover/movie";
     private static final String IMG_SIZE = "w500";
-    private String[][] movieInfo = null;
+    private ArrayList<Movie> movieInfo = new ArrayList<Movie> ();
     private final String LOG_TAG = "PopMovies";
-    //TODO Change adapter type
+    private Toast mToast = null;
     private MyAdapter mMovieAdapter;
 
 
@@ -54,7 +54,6 @@ public class MainActivityFragment extends Fragment {
     @Override
     public void onStart() {
         super.onStart();
-        updateMovies();
     }
 
     @Override
@@ -64,22 +63,30 @@ public class MainActivityFragment extends Fragment {
     }
 
     @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putParcelableArrayList(STATE_MOVIES, movieInfo);
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         final Context context = getActivity().getApplicationContext();
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
 
-        List<String[]> moviesList = null;
-        if (movieInfo != null)
-            moviesList = new ArrayList<String[]>(Arrays.asList(movieInfo));
-        else {
-            moviesList = new ArrayList<String[]>(Arrays.asList(new String[][]{{}}));
-            moviesList.clear();
+        if (savedInstanceState != null) {
+            movieInfo = savedInstanceState.getParcelableArrayList(STATE_MOVIES);
+//            if (mToast != null)
+//                mToast.cancel();
+//
+//            mToast = Toast.makeText(getActivity(), "Movies Retrieved!", Toast.LENGTH_SHORT);
+//            mToast.show();
+        } else {
+            updateMovies();
         }
-
         mMovieAdapter = new MyAdapter(getActivity(),
                     R.layout.gridview_item, R.id.gridview_item_textview, R.id.gridview_item_imageview,
-                    moviesList);
+                movieInfo);
 
         GridView movie_gridview = (GridView) rootView.findViewById(R.id.gridview_movies);
         movie_gridview.setAdapter(mMovieAdapter);
@@ -88,11 +95,12 @@ public class MainActivityFragment extends Fragment {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
                 Intent intent = new Intent(getActivity(), DetailActivity.class)
-                        .putExtra("title", movieInfo[position][0]);
-                intent.putExtra("release", movieInfo[position][1]);
-                intent.putExtra("rating", movieInfo[position][2]);
-                intent.putExtra("overview", movieInfo[position][3]);
-                intent.putExtra("imgUrl", BASE_IMG_URL + IMG_SIZE + movieInfo[position][4]);
+                        .putExtra("title", movieInfo.get(position).getTitle());
+                intent.putExtra("release", movieInfo.get(position).getReleaseDate());
+                intent.putExtra("rating", movieInfo.get(position).getVote());
+                intent.putExtra("overview", movieInfo.get(position).getOverview());
+                intent.putExtra("imgUrl", BASE_IMG_URL + IMG_SIZE +
+                        movieInfo.get(position).getPosterURL());
                 startActivity(intent);
 
             }
@@ -111,42 +119,44 @@ public class MainActivityFragment extends Fragment {
 
         int id = item.getItemId();
         if (id == R.id.action_settings) {
-            //TODO create intent to start activity
             Intent intent = new Intent(getActivity(), SettingsActivity.class);
             startActivity(intent);
             return true;
         }
-        else if (id == R.id.action_refresh) {
+        if (id == R.id.action_refresh)
             updateMovies();
-        }
-
 
         return super.onOptionsItemSelected(item);
     }
 
     private void updateMovies() {
-        //TODO uncomment after all functions coded
         FetchMoviesTask moviesTask = new FetchMoviesTask();
         moviesTask.execute();
+
+        if (mToast != null)
+            mToast.cancel();
+
+        mToast = Toast.makeText(getActivity(), "Movies fetched!", Toast.LENGTH_SHORT);
+        mToast.show();
+
     }
 
-    public class FetchMoviesTask extends AsyncTask<Void, Void, String[][]> {
+    public class FetchMoviesTask extends AsyncTask<Void, Void, ArrayList<Movie>> {
 
         @Override
-        protected void onPostExecute(String[][] result) {
+        protected void onPostExecute(ArrayList<Movie> result) {
 
             if (result != null) {
 
                 mMovieAdapter.clear();
-                for (String[] moviesStr : result) {
-                    mMovieAdapter.add(moviesStr);
+                for (Movie movie : result) {
+                    mMovieAdapter.add(movie);
                 }
             }
-
         }
 
         @Override
-        protected String[][] doInBackground(Void... params) {
+        protected ArrayList<Movie> doInBackground(Void... params) {
             // These two need to be declared outside the try/catch
             // so that they can be closed in the finally block.
             HttpURLConnection urlConnection = null;
@@ -154,7 +164,7 @@ public class MainActivityFragment extends Fragment {
 
             // Will contain the raw JSON response as a string.
             String moviesJsonStr = null;
-            String[][] moviesStr = null;
+            ArrayList<Movie> moviesList = new ArrayList<Movie> ();
             final String SORT_PARAM = "sort_by";
             final String API_PARAM = "api_key";
             SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(getActivity());
@@ -199,7 +209,7 @@ public class MainActivityFragment extends Fragment {
 
                 moviesJsonStr = buffer.toString();
 //                Log.d(LOG_TAG, moviesJsonStr);
-                moviesStr = getMoviesDataFromJson(moviesJsonStr);
+                moviesList = getMoviesDataFromJson(moviesJsonStr);
             } catch (IOException e) {
                 Log.e(LOG_TAG, "Error ", e);
                 // If the code didn't successfully get the weather data, there's no point in attemping
@@ -222,14 +232,14 @@ public class MainActivityFragment extends Fragment {
                     }
                 }
             }
-            movieInfo = moviesStr;
+            movieInfo = moviesList;
 
-            return moviesStr;
+            return moviesList;
         }
 
     }
 
-    private String[][] getMoviesDataFromJson(String moviesJsonStr)
+    private ArrayList<Movie> getMoviesDataFromJson(String moviesJsonStr)
             throws JSONException {
 
         // These are the names of the JSON objects that need to be extracted.
@@ -244,23 +254,18 @@ public class MainActivityFragment extends Fragment {
         JSONArray resultsArray = moviesJson.getJSONArray(MDB_RESULTS);
 
         int numOfResults = resultsArray.length();
-        String[][] resultStrs = new String[numOfResults][5];
+        ArrayList<Movie> resultStrs = new ArrayList<Movie> ();
 
         for(int i = 0; i < numOfResults; i++) {
 
             // Get the JSON object representing a single movie
             JSONObject singleMovie = resultsArray.getJSONObject(i);
 
-            resultStrs[i] = new String[] {singleMovie.getString(MDB_ORIG_TITLE),
+            resultStrs.add(new Movie(singleMovie.getString(MDB_ORIG_TITLE),
                     singleMovie.getString(MDB_RELEASE),
-                    Double.toString(singleMovie.getDouble(MDB_VOTE_AVE)),
-                    singleMovie.getString(MDB_OVERVIEW), singleMovie.getString(MDB_POSTER)};
-
-            for (String s : resultStrs[i]) {
-//                Log.v(LOG_TAG, "Movie entry: " + s);
-            }
+                    singleMovie.getDouble(MDB_VOTE_AVE),
+                    singleMovie.getString(MDB_OVERVIEW), singleMovie.getString(MDB_POSTER)));
         }
-
 
         return resultStrs;
 

@@ -8,6 +8,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.squareup.picasso.Picasso;
 
@@ -18,6 +19,8 @@ import jp.wasabeef.picasso.transformations.CropCircleTransformation;
  * A placeholder fragment containing a simple view.
  */
 public class DetailActivityFragment extends Fragment {
+
+    private Toast mToast = null;
 
     public DetailActivityFragment() {
     }
@@ -36,10 +39,15 @@ public class DetailActivityFragment extends Fragment {
         Intent intent = getActivity().getIntent();
         if (intent != null && intent.hasExtra("title")) {
             String imgUrl = intent.getStringExtra("imgUrl");
-            Picasso.with(getActivity()).load(imgUrl).
-                    transform(new BlurTransformation(getActivity())).into(imageview_bg);
-            Picasso.with(getActivity()).load(imgUrl).
-                    transform(new CropCircleTransformation()).into(imageview_poster);
+            try {
+                Picasso.with(getActivity()).load(imgUrl).
+                        transform(new BlurTransformation(getActivity())).into(imageview_bg);
+                Picasso.with(getActivity()).load(imgUrl).
+                        transform(new CropCircleTransformation()).into(imageview_poster);
+            } catch (Exception e) {
+                imageview_poster.setImageResource(R.drawable.sample);
+            }
+
             textview_title.setText(intent.getStringExtra("title"));
             textview_release.setText("Release Date: " + intent.getStringExtra("release"));
             textview_rating.setText("Score: " + intent.getStringExtra("rating"));
