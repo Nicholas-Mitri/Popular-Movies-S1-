@@ -37,7 +37,7 @@ import java.util.ArrayList;
  */
 public class MainActivityFragment extends Fragment {
 
-    private static final String API_KEY = "de202981a99b1c7b9105af167a0f76ee";
+    private static final String API_KEY = "";
     private static final String BASE_IMG_URL = "http://image.tmdb.org/t/p/";
     private static final String STATE_MOVIES = "state_movies";
     private String BASE_MOV_URL = "http://api.themoviedb.org/3/discover/movie";
