@@ -83,8 +83,9 @@ public class MyAdapter extends BaseAdapter {
             } catch (Exception e) {
                 Log.d("PopMovies", "PICASSO FAILING");
             }
-                    TextView textview = (TextView) mView.findViewById(mTextViewResourceID);
-                    textview.setText(mObjects.get(position).getTitle());
+
+            TextView textview = (TextView) mView.findViewById(mTextViewResourceID);
+            textview.setText(mObjects.get(position).getTitle());
             return mView;
         }
         return null;
